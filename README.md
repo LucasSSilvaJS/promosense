@@ -93,24 +93,26 @@ npm run lint
 ## Estrutura de pastas
 
 ```
-promosense/
-├── public/                 # Arquivos estáticos (logo, favicon, ícones PWA)
-│   ├── logo.png
-│   └── favicon.ico
-├── src/
-│   ├── assets/             # Imagens usadas nos componentes (logo, etc.)
-│   ├── components/         # Componentes reutilizáveis da UI
-│   ├── config/             # Configurações (navegação, destaques da home)
-│   ├── constants/          # Constantes de domínio (sentimentos, aspectos)
-│   ├── data/               # Dados mock (avaliações, períodos promocionais)
-│   ├── pages/              # Páginas da aplicação (uma pasta por rota)
-│   ├── utils/              # Funções utilitárias (cálculos do dashboard)
-│   ├── App.jsx             # Definição das rotas
-│   ├── main.jsx            # Ponto de entrada React
-│   └── global.css          # Estilos globais e import do Tailwind
-├── index.html
-├── vite.config.js          # Vite + Tailwind + PWA
-└── package.json
+frontend react/
+├── README.md
+└── promosense/             # Aplicação React
+    ├── public/             # Arquivos estáticos (logo, favicon, ícones PWA)
+    │   ├── logo.png
+    │   └── favicon.ico
+    ├── src/
+    │   ├── assets/         # Imagens usadas nos componentes (logo, etc.)
+    │   ├── components/     # Componentes reutilizáveis da UI
+    │   ├── config/         # Configurações (navegação, destaques da home)
+    │   ├── constants/      # Constantes de domínio (sentimentos, aspectos)
+    │   ├── data/           # Dados mock (avaliações, períodos promocionais)
+    │   ├── pages/          # Páginas da aplicação (uma pasta por rota)
+    │   ├── utils/          # Funções utilitárias (cálculos do dashboard)
+    │   ├── App.jsx         # Definição das rotas
+    │   ├── main.jsx        # Ponto de entrada React
+    │   └── global.css      # Estilos globais e import do Tailwind
+    ├── index.html
+    ├── vite.config.js      # Vite + Tailwind + PWA
+    └── package.json
 ```
 
 ---
@@ -119,9 +121,9 @@ promosense/
 
 | Rota | Arquivo | Descrição |
 |------|---------|-----------|
-| `/` | `src/pages/home/index.jsx` | Página inicial com proposta do projeto e acesso aos módulos |
-| `/dashboard` | `src/pages/dashboard/index.jsx` | Relatório consolidado: métricas, distribuição de sentimentos e análise por aspecto |
-| `/avaliacoes` | `src/pages/reviews/index.jsx` | Lista de avaliações classificadas, com filtro por período promocional |
+| `/` | `promosense/src/pages/home/index.jsx` | Página inicial com proposta do projeto e acesso aos módulos |
+| `/dashboard` | `promosense/src/pages/dashboard/index.jsx` | Relatório consolidado: métricas, distribuição de sentimentos e análise por aspecto |
+| `/avaliacoes` | `promosense/src/pages/reviews/index.jsx` | Lista de avaliações classificadas, com filtro por período promocional |
 
 Todas as páginas são renderizadas dentro do `AppLayout`, que inclui o cabeçalho fixo em todas as rotas.
 
@@ -167,12 +169,12 @@ Todas as páginas são renderizadas dentro do `AppLayout`, que inclui o cabeçal
 
 | Arquivo | Utilização |
 |---------|------------|
-| `src/data/reviews.js` | Avaliações mock com sentimento geral e por aspecto |
-| `src/data/promotionalPeriods.js` | Períodos promocionais disponíveis no filtro |
-| `src/utils/analytics.js` | Funções para filtrar avaliações e montar o snapshot do dashboard |
-| `src/constants/sentiment.js` | Labels e listas de sentimentos e aspectos |
-| `src/config/navigation.js` | Itens do menu principal |
-| `src/config/features.js` | Cards de funcionalidades exibidos na home |
+| `promosense/src/data/reviews.js` | Avaliações mock com sentimento geral e por aspecto |
+| `promosense/src/data/promotionalPeriods.js` | Períodos promocionais disponíveis no filtro |
+| `promosense/src/utils/analytics.js` | Funções para filtrar avaliações e montar o snapshot do dashboard |
+| `promosense/src/constants/sentiment.js` | Labels e listas de sentimentos e aspectos |
+| `promosense/src/config/navigation.js` | Itens do menu principal |
+| `promosense/src/config/features.js` | Cards de funcionalidades exibidos na home |
 
 ---
 
@@ -180,12 +182,14 @@ Todas as páginas são renderizadas dentro do `AppLayout`, que inclui o cabeçal
 
 - **Manifest**: gerado em build (`manifest.webmanifest`)
 - **Service Worker**: cache de assets e fallback SPA para rotas offline
-- **Ícone**: `public/logo.png` (aba do navegador e instalação do app)
+- **Ícone**: `promosense/public/logo.png` (aba do navegador e instalação do app)
 - **Atualização**: `registerType: 'autoUpdate'` — nova versão aplicada ao recarregar
 
 ---
 
 ## Scripts disponíveis
+
+Execute os comandos dentro da pasta `promosense/`:
 
 | Comando | Descrição |
 |---------|-----------|
