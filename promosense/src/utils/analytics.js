@@ -5,6 +5,11 @@ export function filterReviewsByPeriod(reviews, periodId) {
   return reviews.filter((review) => review.periodId === periodId)
 }
 
+export function filterReviewsBySentiment(reviews, sentimentId) {
+  if (!sentimentId || sentimentId === 'all') return reviews
+  return reviews.filter((review) => review.sentiment === sentimentId)
+}
+
 export function countBySentiment(reviews) {
   return SENTIMENTS.reduce((counts, sentiment) => {
     counts[sentiment] = reviews.filter((review) => review.sentiment === sentiment).length
