@@ -1,12 +1,15 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   plugins: [
-    react(),
+    react({ jsxRuntime: 'automatic' }),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -53,4 +56,9 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    globals: true,
+  },
 })

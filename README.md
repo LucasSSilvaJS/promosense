@@ -39,54 +39,92 @@ O sistema atende aos seguintes requisitos funcionais:
 
 ---
 
-## Como testar o projeto
-
-### 1. Instalar dependências
+## Como rodar o projeto
 
 ```bash
 cd promosense
 npm install
+npm run dev          # desenvolvimento → http://localhost:5173
+npm run build        # produção
+npm run preview      # preview do build → http://localhost:4173
+npm run lint         # ESLint
 ```
 
-### 2. Executar em desenvolvimento
+---
+
+## Testes
+
+Dois tipos se complementam: **automatizados** (rápidos, repetíveis) e **manuais** (layout real, mobile, PWA).
+
+| Tipo | Ferramenta | Quando usar |
+|------|------------|-------------|
+| Automatizado | Vitest + Testing Library | A cada alteração de código; antes de entregar |
+| Manual | Navegador + DevTools | Validar visual, responsivo e instalação PWA |
+
+### Testes automatizados
+
+Na pasta `promosense/`:
 
 ```bash
-npm run dev
+npm test              # roda uma vez
+npm run test:watch    # reexecuta ao salvar
 ```
 
-Acesse o endereço exibido no terminal (geralmente `http://localhost:5173`).
+**Três níveis** — do menor ao maior escopo:
 
-### 3. Build de produção
+| Nível | Testa | Arquivos |
+|-------|--------|----------|
+| **Unitário (UT)** | Função ou componente isolado | `src/utils/analytics.test.js`, `SentimentBadge.test.jsx`, `PromoPeriodFilter.test.jsx` |
+| **Integração (IT)** | Página inteira com dados mock | `src/pages/*/index.test.jsx` |
+| **Sistema (ST)** | App com rotas e navegação | `src/App.system.test.jsx` |
 
-```bash
-npm run build
-npm run preview
-```
+**Cenários cobertos pelo `npm test`**
 
-O preview sobe uma versão otimizada (geralmente em `http://localhost:4173`).
+| ID | O que valida |
+|----|----------------|
+| UT-01 | Filtro por período (`all` e campanha específica) |
+| UT-02 | Filtro por sentimento |
+| UT-03 | Contagem por sentimento |
+| UT-04 | Percentuais com lista vazia → 0% |
+| UT-05 | Cálculo de percentuais (50% / 25% / 25%) |
+| UT-06 | Resumo de aspectos (ex.: preço negativo) |
+| UT-07 | Snapshot do dashboard por período |
+| UT-08 | Badge de sentimento (rótulo e cor) |
+| UT-09 | Badge no modo compacto |
+| UT-10 | Filtro promocional: botão ativo e `onChange` |
+| IT-01 | Dashboard: Black Friday atualiza métricas |
+| IT-02 | Dashboard: troca de período e volta para “todos” |
+| IT-03 | Dashboard: percentuais somam ~100% |
+| IT-04 | Avaliações: filtro Dia do Consumidor |
+| IT-05 | Avaliações: só negativas |
+| IT-06 | Avaliações: período + sentimento juntos |
+| IT-07 | Avaliações: lista vazia com mensagem |
+| IT-08 | Avaliações: card do mock (João Pedro Silva) |
+| IT-10 | Home: links dos módulos |
+| ST-01 | Fluxo Início → Dashboard → Avaliações com filtros |
+| ST-02 | Home: banner e módulos |
+| ST-03 | Header: link ativo destacado |
+| ST-09 | Filtros com rótulos acessíveis (ARIA) |
 
-### 4. Testar o PWA
+> **ST-04 a ST-08** não rodam no terminal — use o roteiro manual abaixo.
 
-1. Execute `npm run build` e `npm run preview`
-2. Abra o site em **localhost** ou **HTTPS**
-3. No Chrome/Edge: menu do navegador → **Instalar aplicativo** / **Instalar PromoSense**
-4. No celular: **Adicionar à Tela de Início**
+### Testes manuais
 
-Para atualizar o ícone ou o cache após mudanças: use **Ctrl+Shift+R** ou desregistre o Service Worker em DevTools → **Application** → **Service Workers**.
+**Preparação:** `npm run dev` (ou `build` + `preview` para PWA).
 
-### 5. Lint
+Marque ✅ quando o resultado for o esperado.
 
-```bash
-npm run lint
-```
+| ID | Passo | Resultado esperado |
+|----|--------|-------------------|
+| **ST-04** | Abra `/` | Banner da pesquisa e cards “Dashboard” / “Avaliações” visíveis |
+| **ST-04** | Vá em `/dashboard`, clique em períodos diferentes | KPIs, barras e cards de aspecto mudam |
+| **ST-04** | Vá em `/avaliacoes`, combine período e sentimento | Contador “Exibindo X de Y” e cards coerentes com o filtro |
+| **ST-05** | Reduza a janela (menos de 768px) ou DevTools em modo mobile | Menu hambúrguer; links abrem a página correta |
+| **ST-06** | Clique Início → Dashboard → Avaliações no header | Página correta; item ativo com fundo claro |
+| **ST-07** | `build` + `preview` → instalar app (Chrome: “Instalar PromoSense”) | App abre em janela própria; ícone na área de trabalho |
+| **ST-08** | Com app instalado, desligue a rede e navegue entre rotas | Páginas principais ainda abrem (cache PWA) |
 
-### Roteiro de teste manual
-
-1. **Início** — verifique o banner da proposta de pesquisa e os cards dos módulos
-2. **Dashboard** — altere o filtro de período promocional e observe métricas e gráficos
-3. **Avaliações** — filtre por campanha e confira sentimento geral e por aspecto em cada card
-4. **Mobile** — redimensione a janela ou use DevTools; o menu hambúrguer aparece abaixo de 768px
-5. **Navegação** — confirme que os links do header destacam a página ativa
+**PWA — dica:** após mudar ícone ou cache, use **Ctrl+Shift+R** ou limpe o Service Worker em DevTools → **Application**.
 
 ---
 
@@ -197,6 +235,8 @@ Execute os comandos dentro da pasta `promosense/`:
 | `npm run build` | Build de produção na pasta `dist/` |
 | `npm run preview` | Preview local do build |
 | `npm run lint` | Verificação ESLint |
+| `npm test` | Testes automatizados (Vitest) |
+| `npm run test:watch` | Testes em modo observação |
 
 ---
 
