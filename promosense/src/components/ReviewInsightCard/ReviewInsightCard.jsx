@@ -1,10 +1,8 @@
-import { promotionalPeriods } from '../../data/promotionalPeriods'
 import AspectTagRow from '../AspectTagRow/AspectTagRow'
 import SentimentBadge from '../SentimentBadge/SentimentBadge'
 
 function ReviewInsightCard({ review }) {
-  const periodLabel =
-    promotionalPeriods.find((period) => period.id === review.periodId)?.label ?? review.periodId
+  const periodLabel = review.periodLabel ?? review.periodId
 
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -12,7 +10,9 @@ function ReviewInsightCard({ review }) {
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-semibold text-slate-900">{review.author}</h3>
           <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-            {periodLabel} · {new Date(review.date).toLocaleDateString('pt-BR')}
+            {review.date
+              ? `${periodLabel} · ${new Date(review.date).toLocaleDateString('pt-BR')}`
+              : periodLabel}
           </p>
         </div>
         <SentimentBadge sentiment={review.sentiment} />

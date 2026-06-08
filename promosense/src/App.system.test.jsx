@@ -1,7 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { createPromosenseApiMock } from './test/mocks/promosenseApi'
 import App from './App'
+
+vi.mock('./api/promosenseApi', () => createPromosenseApiMock())
 
 function renderAppAt(path) {
   window.history.pushState({}, '', path)
@@ -19,11 +22,19 @@ describe('PromoSense — testes de sistema', () => {
     await user.click(screen.getByRole('link', { name: 'Dashboard' }))
     expect(screen.getByRole('heading', { name: 'Dashboard de Sentimento' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Black Friday' }))
+    await waitFor(() => {
+      expect(screen.getByText('Total de avaliações')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Double Date (2024–2026)' }))
     expect(screen.getByText('Total de avaliações')).toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: 'Avaliações' }))
     expect(screen.getByRole('heading', { name: 'Avaliações analisadas' })).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByText(/Exibindo/)).toBeInTheDocument()
+    })
 
     await user.click(screen.getByRole('button', { name: 'Negativo' }))
     expect(screen.getByText(/Exibindo/)).toBeInTheDocument()

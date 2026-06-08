@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { promotionalPeriods } from '../../data/promotionalPeriods'
 import PromoPeriodFilter from './PromoPeriodFilter'
 
-function ControlledFilter({ onChange }) {
+function ControlledFilter({ onChange, onComingSoon }) {
   const [selectedPeriodId, setSelectedPeriodId] = useState('all')
 
   return (
@@ -16,6 +16,7 @@ function ControlledFilter({ onChange }) {
         setSelectedPeriodId(id)
         onChange(id)
       }}
+      onComingSoon={onComingSoon}
     />
   )
 }
@@ -27,15 +28,31 @@ describe('PromoPeriodFilter — testes unitários', () => {
 
     render(<ControlledFilter onChange={onChange} />)
 
-    const blackFriday = screen.getByRole('button', { name: 'Black Friday' })
+    const doubleDate = screen.getByRole('button', { name: 'Double Date (2024–2026)' })
     expect(screen.getByRole('button', { name: 'Todos os períodos' })).toHaveClass('bg-gray-950')
 
-    await user.click(blackFriday)
+    await user.click(doubleDate)
 
-    expect(onChange).toHaveBeenCalledWith('black-friday')
-    expect(blackFriday).toHaveClass('bg-gray-950')
+    expect(onChange).toHaveBeenCalledWith('double_date')
+    expect(doubleDate).toHaveClass('bg-gray-950')
     expect(screen.getByRole('button', { name: 'Todos os períodos' })).not.toHaveClass(
       'bg-gray-950',
     )
+  })
+
+  it('UT-11: campanha indisponível dispara onComingSoon sem alterar seleção', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const onComingSoon = vi.fn()
+
+    render(<ControlledFilter onChange={onChange} onComingSoon={onComingSoon} />)
+
+    await user.click(screen.getByRole('button', { name: 'Black Friday' }))
+
+    expect(onComingSoon).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'black-friday', available: false }),
+    )
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Todos os períodos' })).toHaveClass('bg-gray-950')
   })
 })

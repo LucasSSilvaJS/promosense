@@ -1,20 +1,32 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
-import { reviews } from '../../data/reviews'
-import { filterReviewsByPeriod, filterReviewsBySentiment } from '../../utils/analytics'
+import { describe, expect, it, vi } from 'vitest'
+import { filterMockReviews, mockReviews } from '../../test/fixtures/api'
+import { createPromosenseApiMock } from '../../test/mocks/promosenseApi'
 import ReviewsPage from './index'
 
+vi.mock('../../api/promosenseApi', () => createPromosenseApiMock())
+
 describe('Avaliações — testes de integração', () => {
-  it('IT-04: filtro Dia do Consumidor atualiza contador e lista', async () => {
+  it('IT-04: filtro Double Date atualiza contador e lista', async () => {
     const user = userEvent.setup()
     render(<ReviewsPage />)
 
-    const expected = filterReviewsByPeriod(reviews, 'consumer-day')
-    await user.click(screen.getByRole('button', { name: 'Dia do Consumidor' }))
+    const expected = filterMockReviews({ periodId: 'double_date' })
 
-    expect(screen.getByText(String(expected.length))).toBeInTheDocument()
-    expected.forEach((review) => {
+    await waitFor(() => {
+      expect(screen.getByText(/Exibindo/)).toHaveTextContent('Exibindo 3 de 3')
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Double Date (2024–2026)' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Exibindo/)).toHaveTextContent(
+        `Exibindo ${expected.reviews.length} de ${expected.total}`,
+      )
+    })
+
+    expected.reviews.forEach((review) => {
       expect(screen.getByText(review.author)).toBeInTheDocument()
     })
   })
@@ -23,59 +35,81 @@ describe('Avaliações — testes de integração', () => {
     const user = userEvent.setup()
     render(<ReviewsPage />)
 
+    await waitFor(() => {
+      expect(screen.getByText(mockReviews[0].author)).toBeInTheDocument()
+    })
+
     await user.click(screen.getByRole('button', { name: 'Negativo' }))
 
-    const badges = screen.getAllByText('Negativo')
-    expect(badges.length).toBeGreaterThan(0)
+    const expected = filterMockReviews({ sentimentId: 'negative' })
 
-    const expected = filterReviewsBySentiment(reviews, 'negative')
-    expect(screen.getByText(String(expected.length))).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/Exibindo/)).toHaveTextContent(
+        `Exibindo ${expected.reviews.length} de ${expected.total}`,
+      )
+    })
   })
 
-  it('IT-06: período Black Friday + sentimento positivo combina filtros', async () => {
+  it('IT-06: Double Date + sentimento positivo combina filtros', async () => {
     const user = userEvent.setup()
     render(<ReviewsPage />)
 
-    await user.click(screen.getByRole('button', { name: 'Black Friday' }))
+    await waitFor(() => {
+      expect(screen.getByText(mockReviews[0].author)).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Double Date (2024–2026)' }))
     await user.click(screen.getByRole('button', { name: 'Positivo' }))
 
-    const expected = filterReviewsBySentiment(
-      filterReviewsByPeriod(reviews, 'black-friday'),
-      'positive',
-    )
+    const expected = filterMockReviews({
+      periodId: 'double_date',
+      sentimentId: 'positive',
+    })
 
-    expect(screen.getByText(String(expected.length))).toBeInTheDocument()
-    expected.forEach((review) => {
+    await waitFor(() => {
+      expect(screen.getByText(/Exibindo/)).toHaveTextContent(
+        `Exibindo ${expected.reviews.length} de ${expected.total}`,
+      )
+    })
+
+    expected.reviews.forEach((review) => {
       expect(screen.getByText(review.author)).toBeInTheDocument()
     })
   })
 
-  it('IT-07: filtros sem resultado exibem mensagem de vazio', async () => {
+  it('IT-07: campanha indisponível exibe alerta sem alterar a listagem', async () => {
     const user = userEvent.setup()
     render(<ReviewsPage />)
 
-    await user.click(screen.getByRole('button', { name: 'Black Friday' }))
-    await user.click(screen.getByRole('button', { name: 'Negativo' }))
+    await waitFor(() => {
+      expect(screen.getByText(mockReviews[0].author)).toBeInTheDocument()
+    })
 
-    expect(
-      screen.getByText('Nenhuma avaliação encontrada para os filtros selecionados.'),
-    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Dia do Consumidor' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/atualizações futuras/i)
+    expect(screen.getByText(mockReviews[0].author)).toBeInTheDocument()
   })
 
-  it('IT-08: card de João Pedro Silva mostra dados do mock', () => {
+  it('IT-08: card de Cliente Shopee #8411 mostra dados do mock', async () => {
     render(<ReviewsPage />)
 
-    const review = reviews.find((r) => r.author === 'João Pedro Silva')
-    const joaoCard = screen.getByText('João Pedro Silva').closest('article')
+    const review = mockReviews.find((item) => item.author === 'Cliente Shopee #8411')
 
-    expect(joaoCard).toHaveTextContent('Double Dates')
-    expect(joaoCard).toHaveTextContent(review.text)
-    expect(within(joaoCard).getByRole('heading', { level: 3 })).toHaveTextContent(
-      'João Pedro Silva',
+    await waitFor(() => {
+      expect(screen.getByText(review.author)).toBeInTheDocument()
+    })
+
+    const reviewCard = screen.getByText(review.author).closest('article')
+
+    expect(reviewCard).toHaveTextContent('Double Date (2024–2026)')
+    expect(reviewCard).toHaveTextContent(review.text)
+    expect(within(reviewCard).getByRole('heading', { level: 3 })).toHaveTextContent(
+      'Cliente Shopee #8411',
     )
-    expect(within(joaoCard).getByLabelText('Sentimento por aspecto')).toHaveTextContent('Preço')
-    expect(within(joaoCard).getByLabelText('Sentimento por aspecto')).toHaveTextContent(
-      'Negativo',
+    expect(within(reviewCard).getByLabelText('Sentimento por aspecto')).toHaveTextContent('Preço')
+    expect(within(reviewCard).getByLabelText('Sentimento por aspecto')).toHaveTextContent(
+      'Neutro',
     )
   })
 })

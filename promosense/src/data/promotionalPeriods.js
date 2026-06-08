@@ -1,7 +1,11 @@
-export const promotionalPeriods = [
-  { id: 'all', label: 'Todos os períodos' },
-  { id: 'black-friday', label: 'Black Friday' },
-  { id: 'double-dates', label: 'Double Dates' },
-  { id: 'consumer-day', label: 'Dia do Consumidor' },
-  { id: 'anniversary-sale', label: 'Aniversário da Loja' },
-]
+import { buildPromotionalPeriods } from '../config/promotionalPeriods'
+
+/** Lista padrão para testes e fallback offline */
+export const promotionalPeriods = buildPromotionalPeriods([
+  {
+    id: 'double_date',
+    label: 'Double Date (2024–2026)',
+    description:
+      'Avaliações coletadas na Shopee entre 2024 e 2026 durante campanhas Double Date.',
+  },
+])

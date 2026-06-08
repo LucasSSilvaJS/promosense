@@ -1,24 +1,29 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
-import { reviews } from '../../data/reviews'
-import { buildDashboardSnapshot } from '../../utils/analytics'
+import { describe, expect, it, vi } from 'vitest'
+import { mockDashboardAll, mockDashboardDoubleDate } from '../../test/fixtures/api'
+import { createPromosenseApiMock } from '../../test/mocks/promosenseApi'
 import DashboardPage from './index'
 
+vi.mock('../../api/promosenseApi', () => createPromosenseApiMock())
+
 describe('Dashboard — testes de integração', () => {
-  it('IT-01: filtro Black Friday atualiza métricas do snapshot', async () => {
+  it('IT-01: filtro Double Date atualiza métricas do snapshot', async () => {
     const user = userEvent.setup()
     render(<DashboardPage />)
 
-    const snapshot = buildDashboardSnapshot(reviews, 'black-friday')
+    await waitFor(() => {
+      expect(screen.getByText(String(mockDashboardAll.totalReviews))).toBeInTheDocument()
+    })
 
-    await user.click(screen.getByRole('button', { name: 'Black Friday' }))
+    await user.click(screen.getByRole('button', { name: 'Double Date (2024–2026)' }))
 
-    expect(screen.getByText('Total de avaliações').closest('article')).toHaveTextContent(
-      String(snapshot.totalReviews),
-    )
+    await waitFor(() => {
+      expect(screen.getByText(String(mockDashboardDoubleDate.totalReviews))).toBeInTheDocument()
+    })
+
     expect(screen.getByText('Sentimento positivo').closest('article')).toHaveTextContent(
-      `${snapshot.sentimentPercentages.positive}%`,
+      `${mockDashboardDoubleDate.sentimentPercentages.positive}%`,
     )
   })
 
@@ -26,22 +31,44 @@ describe('Dashboard — testes de integração', () => {
     const user = userEvent.setup()
     render(<DashboardPage />)
 
-    const allSnapshot = buildDashboardSnapshot(reviews, 'all')
-    const doubleDatesSnapshot = buildDashboardSnapshot(reviews, 'double-dates')
+    await waitFor(() => {
+      expect(screen.getByText(String(mockDashboardAll.totalReviews))).toBeInTheDocument()
+    })
 
-    await user.click(screen.getByRole('button', { name: 'Double Dates' }))
-    expect(screen.getByText(String(doubleDatesSnapshot.totalReviews))).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Double Date (2024–2026)' }))
+    await waitFor(() => {
+      expect(screen.getByText(String(mockDashboardDoubleDate.totalReviews))).toBeInTheDocument()
+    })
 
     await user.click(screen.getByRole('button', { name: 'Todos os períodos' }))
-    expect(screen.getByText(String(allSnapshot.totalReviews))).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(String(mockDashboardAll.totalReviews))).toBeInTheDocument()
+    })
   })
 
-  it('IT-03: percentuais somam aproximadamente 100% com todos os períodos', () => {
+  it('IT-03: campanha indisponível exibe alerta de atualização futura', async () => {
+    const user = userEvent.setup()
     render(<DashboardPage />)
 
-    const { sentimentPercentages: percentages } = buildDashboardSnapshot(reviews, 'all')
-    const sum =
-      percentages.positive + percentages.neutral + percentages.negative
+    await waitFor(() => {
+      expect(screen.getByText('Total de avaliações')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Black Friday' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/atualizações futuras/i)
+    expect(screen.getByText(String(mockDashboardAll.totalReviews))).toBeInTheDocument()
+  })
+
+  it('IT-04: percentuais somam aproximadamente 100% com todos os períodos', async () => {
+    render(<DashboardPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText(String(mockDashboardAll.totalReviews))).toBeInTheDocument()
+    })
+
+    const { sentimentPercentages: percentages } = mockDashboardAll
+    const sum = percentages.positive + percentages.neutral + percentages.negative
 
     expect(sum).toBeGreaterThanOrEqual(99)
     expect(sum).toBeLessThanOrEqual(101)
