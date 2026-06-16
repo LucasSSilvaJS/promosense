@@ -14,8 +14,6 @@ Responsive web interface (mobile-first), built with React and ready to work as a
 
 **PromoSense** is a sentiment analyzer for online stores. The app reads product reviews and classifies them as **positive**, **negative**, or **neutral**. It also shows results by promotional period (Black Friday, Double Dates, Consumer Day, etc.) and by topic: price, delivery, and quality.
 
-Right now the data is **mock** (fake/simulated). It is ready for a future connection with a real AI API.
-
 ---
 
 ## Key Features
@@ -65,6 +63,8 @@ npm run preview      # preview build → http://localhost:4173
 npm run lint         # ESLint check
 ```
 
+The app consumes the sentiment analysis API. By default, it uses `https://backend-promosense.onrender.com`. To point to another backend, copy `.env.example` to `.env` and set `VITE_API_URL`.
+
 ---
 
 ## Tests
@@ -90,7 +90,7 @@ npm run test:watch    # run again when you save files
 | Level | What it tests | Files |
 |-------|---------------|-------|
 | **Unit (UT)** | One function or component alone | `src/utils/analytics.test.js`, `SentimentBadge.test.jsx`, `PromoPeriodFilter.test.jsx` |
-| **Integration (IT)** | Full page with mock data | `src/pages/*/index.test.jsx` |
+| **Integration (IT)** | Full page with API data loading | `src/pages/*/index.test.jsx` |
 | **System (ST)** | App with routes and navigation | `src/App.system.test.jsx` |
 
 **Scenarios covered by `npm test`**
@@ -114,7 +114,7 @@ npm run test:watch    # run again when you save files
 | IT-05 | Reviews: only negative reviews |
 | IT-06 | Reviews: period + sentiment together |
 | IT-07 | Reviews: empty list with message |
-| IT-08 | Reviews: mock card (João Pedro Silva) |
+| IT-08 | Reviews: card with author, text, and sentiments (Cliente Shopee #8411) |
 | IT-10 | Home: module links |
 | ST-01 | Flow Home → Dashboard → Reviews with filters |
 | ST-02 | Home: banner and modules |
@@ -155,10 +155,12 @@ frontend react/
     │   └── favicon.ico
     ├── src/
     │   ├── assets/         # Images used in components
+    │   ├── api/            # HTTP client and API response mapping
     │   ├── components/     # Reusable UI components
     │   ├── config/         # Settings (navigation, home highlights)
     │   ├── constants/      # Domain constants (sentiments, aspects)
-    │   ├── data/           # Mock data (reviews, promotional periods)
+    │   ├── data/           # Static fallback data (promotional periods)
+    │   ├── hooks/          # Data loading (dashboard, reviews, periods)
     │   ├── pages/          # App pages (one folder per route)
     │   ├── utils/          # Helper functions (dashboard calculations)
     │   ├── App.jsx         # Route definitions
@@ -223,8 +225,12 @@ All pages are inside `AppLayout`, which shows a fixed header on every route.
 
 | File | Usage |
 |------|-------|
-| `promosense/src/data/reviews.js` | Mock reviews with overall and aspect sentiment |
-| `promosense/src/data/promotionalPeriods.js` | Promotional periods available in the filter |
+| `promosense/src/api/promosenseApi.js` | API calls (dashboard, reviews, promotional periods) |
+| `promosense/src/api/mappers.js` | Converts API payloads to the UI format |
+| `promosense/src/hooks/useDashboard.js` | Loads the dashboard snapshot for the selected period |
+| `promosense/src/hooks/useReviews.js` | Loads paginated reviews with period and sentiment filters |
+| `promosense/src/hooks/usePromotionalPeriods.js` | Loads promotional periods from the API (with local fallback) |
+| `promosense/src/data/promotionalPeriods.js` | Promotional periods used as fallback when the API fails |
 | `promosense/src/utils/analytics.js` | Functions to filter reviews and build dashboard snapshot |
 | `promosense/src/constants/sentiment.js` | Labels and lists for sentiments and aspects |
 | `promosense/src/config/navigation.js` | Main menu items |
@@ -260,7 +266,6 @@ Run these commands inside the `promosense/` folder:
 
 If we had more time, we plan to:
 
-* Connect the frontend to a real AI API for sentiment analysis
 * Add user login and save filter preferences
 * Support more languages in the interface
 * Add charts and export reports (PDF/CSV)

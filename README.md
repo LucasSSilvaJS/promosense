@@ -17,8 +17,6 @@ O sistema atende aos seguintes requisitos funcionais:
 | **RF03** | Gerar **dashboard** com indicadores e distribuição dos resultados da análise |
 | **RF04** | Analisar sentimento por **aspectos**: preço, entrega e qualidade, além do sentimento geral |
 
-> Os dados exibidos atualmente são **mock** (simulados), prontos para integração futura com uma API de IA.
-
 ---
 
 ## Tecnologias
@@ -50,6 +48,8 @@ npm run preview      # preview do build → http://localhost:4173
 npm run lint         # ESLint
 ```
 
+A aplicação consome a API de análise de sentimento. Por padrão, usa `https://backend-promosense.onrender.com`. Para apontar para outro backend, copie `.env.example` para `.env` e ajuste `VITE_API_URL`.
+
 ---
 
 ## Testes
@@ -75,7 +75,7 @@ npm run test:watch    # reexecuta ao salvar
 | Nível | Testa | Arquivos |
 |-------|--------|----------|
 | **Unitário (UT)** | Função ou componente isolado | `src/utils/analytics.test.js`, `SentimentBadge.test.jsx`, `PromoPeriodFilter.test.jsx` |
-| **Integração (IT)** | Página inteira com dados mock | `src/pages/*/index.test.jsx` |
+| **Integração (IT)** | Página inteira com carregamento de dados da API | `src/pages/*/index.test.jsx` |
 | **Sistema (ST)** | App com rotas e navegação | `src/App.system.test.jsx` |
 
 **Cenários cobertos pelo `npm test`**
@@ -99,7 +99,7 @@ npm run test:watch    # reexecuta ao salvar
 | IT-05 | Avaliações: só negativas |
 | IT-06 | Avaliações: período + sentimento juntos |
 | IT-07 | Avaliações: lista vazia com mensagem |
-| IT-08 | Avaliações: card do mock (João Pedro Silva) |
+| IT-08 | Avaliações: card com autor, texto e sentimentos (Cliente Shopee #8411) |
 | IT-10 | Home: links dos módulos |
 | ST-01 | Fluxo Início → Dashboard → Avaliações com filtros |
 | ST-02 | Home: banner e módulos |
@@ -139,10 +139,12 @@ frontend react/
     │   └── favicon.ico
     ├── src/
     │   ├── assets/         # Imagens usadas nos componentes (logo, etc.)
+    │   ├── api/            # Cliente HTTP e mapeamento da API
     │   ├── components/     # Componentes reutilizáveis da UI
     │   ├── config/         # Configurações (navegação, destaques da home)
     │   ├── constants/      # Constantes de domínio (sentimentos, aspectos)
-    │   ├── data/           # Dados mock (avaliações, períodos promocionais)
+    │   ├── data/           # Dados estáticos de fallback (períodos promocionais)
+    │   ├── hooks/          # Carregamento de dados (dashboard, avaliações, períodos)
     │   ├── pages/          # Páginas da aplicação (uma pasta por rota)
     │   ├── utils/          # Funções utilitárias (cálculos do dashboard)
     │   ├── App.jsx         # Definição das rotas
@@ -207,8 +209,12 @@ Todas as páginas são renderizadas dentro do `AppLayout`, que inclui o cabeçal
 
 | Arquivo | Utilização |
 |---------|------------|
-| `promosense/src/data/reviews.js` | Avaliações mock com sentimento geral e por aspecto |
-| `promosense/src/data/promotionalPeriods.js` | Períodos promocionais disponíveis no filtro |
+| `promosense/src/api/promosenseApi.js` | Chamadas à API (dashboard, avaliações, períodos promocionais) |
+| `promosense/src/api/mappers.js` | Conversão dos payloads da API para o formato da interface |
+| `promosense/src/hooks/useDashboard.js` | Carrega o snapshot do dashboard conforme o período selecionado |
+| `promosense/src/hooks/useReviews.js` | Carrega avaliações paginadas com filtros de período e sentimento |
+| `promosense/src/hooks/usePromotionalPeriods.js` | Carrega períodos promocionais da API (com fallback local) |
+| `promosense/src/data/promotionalPeriods.js` | Períodos promocionais usados como fallback quando a API falha |
 | `promosense/src/utils/analytics.js` | Funções para filtrar avaliações e montar o snapshot do dashboard |
 | `promosense/src/constants/sentiment.js` | Labels e listas de sentimentos e aspectos |
 | `promosense/src/config/navigation.js` | Itens do menu principal |
